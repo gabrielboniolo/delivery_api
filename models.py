@@ -1,11 +1,12 @@
-from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float
+from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base
+#from sqlalchemy_utils.types import ChoiceType
 
 db = create_engine("sqlite:///banco.db")
-Base = declarative_base
+Base = declarative_base()
 
 class Usuario(Base):
-    __table_name__ = "usuarios"
+    __tablename__ = "usuarios"
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     nome = Column("nome", String)
@@ -19,4 +20,43 @@ class Usuario(Base):
         self.email = email
         self.senha = senha
         self.ativo = ativo
-        self.addmin = admin
+        self.admin = admin
+
+class Pedido(Base):
+    __tablename__ = "pedidos"
+
+    # STATUS_PEDIDOS = (
+    #     ("PENDENTE", "PENDENTE"),
+    #     ("CANCELADO", "CANCELADO"),
+    #     ("FINALIZADO", "FINALIZADO")
+    # )
+
+    id = Column("id", Integer, primary_key=True, autoincrement=True)
+    #status = Column("status", ChoiceType(choices=STATUS_PEDIDOS))
+    status = Column("status", String)
+    usuario = Column("usuario", ForeignKey("usuarios.id"))
+    preco = Column("preco", Float)
+    #itens = Column("itens", Boolean)
+
+    def __init__(self, usuario, status="pendente", preco=0):
+        self.status = status
+        self.usuario = usuario
+        self.preco = preco
+
+class ItemPedido(Base):
+    __tablename__ = "itens_pedido"
+
+    id = Column("id",Integer, primary_key=True, autoincrement=True)
+    quantidade = Column("quantidade", Integer)
+    sabor = Column("sabor", String)
+    tamanho = Column("tamanho", String)
+    preco_unitario = Column("preco_unitario", Float)
+    pedido = Column("pedido", ForeignKey("pedidos.id"))
+
+
+    def __init__(self, quantidade, sabor, tamanho, preco_unitario, pedido):
+        self.quantidade = quantidade
+        self.sabor = sabor
+        self.tamanho = tamanho
+        self.preco_unitario = preco_unitario
+        self.pedido = pedido
