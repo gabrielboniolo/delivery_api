@@ -9,7 +9,7 @@ async def auth():
     """ Rota padrão de autenticação do sistema """
     return {"mensagem": "Você acessou a rota de autenticação.", "autenticado": False}
 
-@auth_router.get("/criar_conta")
+@auth_router.post("/criar_conta")
 async def criar_conta(nome:str, email:str, senha:str):
     Session = sessionmaker(bind=db)
     session = Session()
