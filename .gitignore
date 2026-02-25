@@ -9,3 +9,5 @@ alembic/
 alembic.ini
 
 banco.db
+
+.env
