@@ -3,3 +3,7 @@ venv/
 __pycache__/
 
 anotações.txt
+
+alembic/
+
+alembic.ini
