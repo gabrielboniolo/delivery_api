@@ -11,14 +11,14 @@ def criar_token(id_usuario):
     token = f"ahj53us64bduy5345abs{id_usuario}"
     return token
 
-# def autenticar_usuario(email, senha, session):
-#     usuario = session.query(Usuario).filter(Usuario.email==email).first()
-#     if not usuario:
-#         return False
-#     elif not bcrypt_context.verify(senha, usuario.senha):
-#         return False
-#     else:
-#         return usuario
+def autenticar_usuario(email, senha, session):
+    usuario = session.query(Usuario).filter(Usuario.email==email).first()
+    if not usuario:
+        return False
+    elif bcrypt_context.verify(senha, usuario.senha):
+        return False
+    else:
+        return usuario
 
 @auth_router.get("/")
 async def auth():
@@ -54,9 +54,8 @@ async def login(login_schema:LoginSchema, session:Session = Depends(pegar_sessao
 
     login_email = login_schema.email
     login_password = login_schema.senha
-
-    auth_user = session.query(Usuario).filter(Usuario.email==login_email).first()
-    # auth_user = autenticar_usuario(login_email, login_password, session)
+    
+    auth_user = autenticar_usuario(login_email, login_password, session)
 
     if not auth_user:
         raise HTTPException(status_code=400, detail="Usuário não encontrado")
