@@ -11,6 +11,15 @@ def criar_token(id_usuario):
     token = f"ahj53us64bduy5345abs{id_usuario}"
     return token
 
+# def autenticar_usuario(email, senha, session):
+#     usuario = session.query(Usuario).filter(Usuario.email==email).first()
+#     if not usuario:
+#         return False
+#     elif not bcrypt_context.verify(senha, usuario.senha):
+#         return False
+#     else:
+#         return usuario
+
 @auth_router.get("/")
 async def auth():
     """ Rota padrão de autenticação do sistema """
@@ -23,31 +32,36 @@ async def criar_conta(usuario_schema:UsuarioSchema, session:Session = Depends(pe
 
     """
 
-    usuario = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()
+    verify_user = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()
 
-    if usuario:
+    if verify_user:
         raise HTTPException(status_code=400, detail="Usuário já cadastrado")
     else:
-        nome = usuario_schema.nome
-        email = usuario_schema.email
-        senha = usuario_schema.senha
+        account_name = usuario_schema.nome
+        account_email = usuario_schema.email
+        account_password = usuario_schema.senha
 
-        senha_criptografada = bcrypt_context.hash(senha)
+        crypto_password = bcrypt_context.hash(account_password)
 
-        novo_usuario = Usuario(nome, email, senha_criptografada)
+        new_user = Usuario(account_name, account_email, crypto_password)
 
-        session.add(novo_usuario)
+        session.add(new_user)
         session.commit()
-        return {"mensagem": f"Usuário cadastrado com sucesso {email}."}
+        return {"mensagem": f"Usuário cadastrado com sucesso {account_email}."}
     
 @auth_router.post("/login")
 async def login(login_schema:LoginSchema, session:Session = Depends(pegar_sessao)):
-    usuario = session.query(Usuario).filter(Usuario.email==login_schema.email).first()
 
-    if not usuario:
+    login_email = login_schema.email
+    login_password = login_schema.senha
+
+    auth_user = session.query(Usuario).filter(Usuario.email==login_email).first()
+    # auth_user = autenticar_usuario(login_email, login_password, session)
+
+    if not auth_user:
         raise HTTPException(status_code=400, detail="Usuário não encontrado")
     else:
-        access_token = criar_token(usuario.id)
+        access_token = criar_token(auth_user.id)
         return {
             "acess_token": access_token,
             "token_type": "Bearer"
