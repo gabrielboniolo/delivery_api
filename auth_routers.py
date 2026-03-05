@@ -1,36 +1,47 @@
+from datetime import date
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
+from datetime import datetime, timedelta, timezone
+
 from models import Usuario
 from dependencies import pegar_sessao
-from main import bcrypt_context
+# Code smell! Isn't a good practice to import the main script.
+# I have to create a new one for this crypto instance.
+from main import bcrypt_context, SECRET_KEY, ACESS_TOKEN_EXPIRE_MINUTES, ALGORITHMS
 from schemas import UsuarioSchema, LoginSchema
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
-def criar_token(id_usuario):
-    token = f"ahj53us64bduy5345abs{id_usuario}"
-    return token
+def create_token(id_usuario):
+    # JWT
+    # id user
+    # expiration date
+    #acess_token_expiration_date
+    expiration_date = datetime.now(timezone.utc) + timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)
+    dict_info = {"sub": id_usuario, "expiration_date": expiration_date}
+    encoded_jwt = jwt.encode(dict_info, SECRET_KEY, ALGORITHM)
+    return encoded_jwt
 
-def autenticar_usuario(email, senha, session):
-    usuario = session.query(Usuario).filter(Usuario.email==email).first()
-    if not usuario:
+def auth_user(email, password, session):
+    user = session.query(Usuario).filter(Usuario.email==email).first()
+    if not user:
         return False
-    elif bcrypt_context.verify(senha, usuario.senha):
+    elif bcrypt_context.verify(password, user.senha):
         return False
     else:
-        return usuario
+        return user
 
 @auth_router.get("/")
 async def auth():
-    """ Rota padrão de autenticação do sistema """
+    """ System authentication standard route. """
     return {"mensagem": "Você acessou a rota de autenticação.", "autenticado": False}
 
 @auth_router.post("/criar_conta")
 async def criar_conta(usuario_schema:UsuarioSchema, session:Session = Depends(pegar_sessao)):
-    """ 
-    Rota para a criação da conta 
-
-    """
+    """ Create account route. """
 
     verify_user = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()
 
@@ -51,16 +62,17 @@ async def criar_conta(usuario_schema:UsuarioSchema, session:Session = Depends(pe
     
 @auth_router.post("/login")
 async def login(login_schema:LoginSchema, session:Session = Depends(pegar_sessao)):
+    """ Login route. """
 
     login_email = login_schema.email
     login_password = login_schema.senha
-    
-    auth_user = autenticar_usuario(login_email, login_password, session)
+
+    auth_user = auth_user(login_email, login_password, session)
 
     if not auth_user:
         raise HTTPException(status_code=400, detail="Usuário não encontrado")
     else:
-        access_token = criar_token(auth_user.id)
+        access_token = create_token(auth_user.id)
         return {
             "acess_token": access_token,
             "token_type": "Bearer"
