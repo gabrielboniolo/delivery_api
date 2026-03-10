@@ -6,8 +6,6 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 
-# Code smell! Isn't a good practice to import the main script.
-# I have to create a new one for this crypto instance.
 from main import bcrypt_context, SECRET_KEY, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
 from models import Usuario
 from dependencies import pegar_sessao, authorize_token
@@ -20,16 +18,6 @@ def create_token(id_usuario, duracao_token=timedelta(minutes=ACESS_TOKEN_EXPIRE_
     dict_info = {"sub": id_usuario, "expiration_date": expiration_date}
     encoded_jwt = jwt.encode(dict_info, SECRET_KEY, ALGORITHM)
     return encoded_jwt
-
-# Isn't possible to call a session  beacause that func isn't a route
-# Depends() is a function from fastapi module
-# Remember that have a problem to call the session on the refresh route
-# So it's to throw this function to dependencies script
-#
-# def verify_token(token, session:Session = Depends(pegar_sessao)): 
-#     # Falta validar o token passado como parâmetro
-#     find_user = session.query(Usuario).filter(Usuario.id == 1).first()
-#     return find_user
 
 def authenticate_user(email, password, session):
     user = session.query(Usuario).filter(Usuario.email==email).first()
@@ -47,21 +35,7 @@ async def auth():
 
 @auth_router.post("/criar_conta")
 async def criar_conta(usuario_schema:UsuarioSchema, session:Session = Depends(pegar_sessao)):
-    """ 
-    Create account route. 
-    
-    usuario_schema: Objeto instanciado a partir de um Schema. Ele só pode ser tratado como
-    objeto aqui no código, por conta da classe Config dentro do Schema.
-
-    Se não houvesse essa configuração, na classe Config, só seria possível tratar o Schema
-    como um dicionário e não como um objeto.
-    Exemplo: name = user_schema["name"] x name = user_schema.name
-
-    Dentro do Swagger, ele interpreta esse parâmetro do tipo Schema e é retornado um dicionário
-    formatado com chaves (ao invés de inputs relacionados aos parâmetros da rota), referente aos
-    atributos que foram declarados na "ClasseSchema".
-    É como se o Pydantic alterasse a forma se instancia um objeto.
-    """
+    """ Create account route. """
 
     verify_user = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()
 
@@ -106,23 +80,3 @@ async def use_refresh_token(verified_user_token:Usuario = Depends(authorize_toke
             "acess_token": access_token,
             "token_type": "Bearer"
         }
-
-"""
-Dúvidas:
-
-1.1) Token de acesso X Token de refresh (30' e 7 dias, mas como isso afeta o login do usuário).
-Eu entendi que após o do refresh, será necessário logar novamente. Mas porque utilizar o "acess token"?
-
-# RESPOSTA: Se um hacker tiver acesso ao acess_token
-
-1.2) Então porque o hacker não acessa o refresh token, já que tem uma duração maior?
-
-# RESPOSTA: O refresh token transita pela rede quando o acess_token expira. Resumindo, ele tem uma
-visibilidade menor do que o acess_token, sendo muito mais difícil de acessá-lo.
-
-2) Para que preciso chamar o refresh token como rota?
-
-# RESPOSTA: Gerar um novo acess_token, que expira a cada 30 minutos.
-
-
-"""
