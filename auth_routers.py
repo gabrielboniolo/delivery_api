@@ -15,7 +15,7 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 def create_token(id_usuario, duracao_token=timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)):
     expiration_date = str(datetime.now(timezone.utc) + duracao_token)
-    dict_info = {"sub": id_usuario, "expiration_date": expiration_date}
+    dict_info = {"sub": str(id_usuario), "expiration_date": expiration_date}
     encoded_jwt = jwt.encode(dict_info, SECRET_KEY, ALGORITHM)
     return encoded_jwt
 
