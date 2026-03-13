@@ -1,10 +1,9 @@
-from datetime import date
-from typing import Optional
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
-from datetime import datetime, timedelta, timezone
 
 from main import bcrypt_context, SECRET_KEY, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
 from models import Usuario
@@ -69,14 +68,34 @@ async def login(login_schema:LoginSchema, session:Session = Depends(pegar_sessao
         access_token = create_token(auth_user.id)
         refresh_token = create_token(auth_user.id, duracao_token=timedelta(days=7))
         return {
-            "acess_token": access_token,
-            " refresh_token": refresh_token,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "Bearer"
+        }
+
+@auth_router.post("/login-form")
+async def login_form(data_form:OAuth2PasswordRequestForm = Depends(), session:Session = Depends(pegar_sessao)):
+    """ OAuth2 login route. """
+
+    login_email = data_form.username
+    login_password = data_form.password
+
+    auth_user = authenticate_user(login_email, login_password, session)
+
+    if not auth_user:
+        raise HTTPException(status_code=400, detail="Usuário não encontrado")
+    else:
+        access_token = create_token(auth_user.id)
+        refresh_token = create_token(auth_user.id, duracao_token=timedelta(days=7))
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "Bearer"
         }
 @auth_router.get("/refresh")
 async def use_refresh_token(verified_user_token:Usuario = Depends(authorize_token)):
     access_token = create_token(verified_user_token.id)
     return {
-            "acess_token": access_token,
+            "access_token": access_token,
             "token_type": "Bearer"
         }
