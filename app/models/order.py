@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Column, String, Integer, Float, ForeignKey
-from base_model import BaseModel
+from sqlalchemy import Column, String, Integer, Float, ForeignKey
+from app.models.base_model import BaseModel
 
 class Pedido(BaseModel):
     __tablename__ = "pedidos"

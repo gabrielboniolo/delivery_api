@@ -1,5 +1,5 @@
 from typing import Optional
-from base_schema import BaseSchema
+from app.schemas.base_schema import BaseSchema
 
 class UsuarioSchema(BaseSchema):
     nome: str 

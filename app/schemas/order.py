@@ -1,4 +1,4 @@
-from base_schema import BaseSchema
+from app.schemas.base_schema import BaseSchema
 
 class PedidoSchema(BaseSchema):
     id_usuario: int
