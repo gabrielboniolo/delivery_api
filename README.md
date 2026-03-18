@@ -2,9 +2,16 @@
 
 A RESTful API built to simulate a pizza delivery system. Covers user authentication with JWT, order management, and database migrations with Alembic.
 
-## Tech Stack
+## Tools
 
-Python, FastAPI, SQLAlchemy, SQLite, Alembic, Pydantic v2, python-jose, passlib (bcrypt), python-dotenv
+- FastAPI
+- SQLAlchemy
+- SQLite
+- Alembic
+- Pydantic
+- python-jose
+- passlib (bcrypt)
+- python-dotenv
 
 ## Features
 
