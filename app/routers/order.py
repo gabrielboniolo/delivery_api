@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from dependencies import pegar_sessao
-from schemas import PedidoSchema
-from models import Pedido
+
+from app.utils.dependencies import pegar_sessao
+from app.schemas.order import PedidoSchema
+from app.models.order import Pedido
 
 order_router = APIRouter(prefix="/pedidos", tags=["pedidos"])
 

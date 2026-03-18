@@ -5,10 +5,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
-from main import bcrypt_context, SECRET_KEY, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
-from models import Usuario
-from dependencies import pegar_sessao, authorize_token
-from schemas import UsuarioSchema, LoginSchema
+from app.utils.security import bcrypt_context
+from app.utils.dependencies import pegar_sessao, authorize_token
+from app.utils.load_env import SECRET_KEY, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
+from app.models.user import Usuario
+from app.schemas.user import UsuarioSchema, LoginSchema
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -92,6 +93,7 @@ async def login_form(data_form:OAuth2PasswordRequestForm = Depends(), session:Se
             "refresh_token": refresh_token,
             "token_type": "Bearer"
         }
+    
 @auth_router.get("/refresh")
 async def use_refresh_token(verified_user_token:Usuario = Depends(authorize_token)):
     access_token = create_token(verified_user_token.id)
